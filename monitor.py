@@ -1,14 +1,16 @@
 import json, os, re, sys, time, urllib.parse, urllib.request
 from pathlib import Path
 
+from curl_cffi import requests as cr
+
 ESTADO = Path("estado.json")
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36"
 
 
 def baixar(url):
-    req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept-Language": "pt-BR,pt;q=0.9"})
-    with urllib.request.urlopen(req, timeout=25) as r:
-        return r.read().decode("utf-8", "ignore")
+    r = cr.get(url, impersonate="chrome", timeout=25, headers={"Accept-Language": "pt-BR,pt;q=0.9"})
+    r.raise_for_status()
+    return r.text
 
 
 def num(v):
