@@ -63,12 +63,14 @@ def main():
         alvo = prod.get("alvo")
         for url in prod["links"]:
             try:
-                p = preco(baixar(url))
+                html = baixar(url)
+                p = preco(html)
             except Exception as e:
                 print("FALHOU", url, e)
                 continue
             if p is None:
                 print("SEM PREÇO", url)
+                Path("debug_" + urllib.parse.urlparse(url).netloc + ".html").write_text(html, encoding="utf-8")
                 continue
             ant = estado.get(url)
             loja = urllib.parse.urlparse(url).netloc.replace("www.", "")
@@ -82,7 +84,11 @@ def main():
                 if alvo:
                     linhas.append(f"Seu alvo: {brl(alvo)}")
                 linhas.append(url)
-                avisar("\n".join(linhas))
+                try:
+                    avisar("\n".join(linhas))
+                except Exception as e:
+                    print("ALERTA NÃO ENVIADO", loja, e)
+                    continue  # não grava estado: tenta de novo na próxima rodada
             estado[url] = {"ultimo": p, "min": min(p, ant["min"]) if ant else p}
             print("OK", loja, brl(p))
             time.sleep(3)
